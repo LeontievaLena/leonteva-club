@@ -165,4 +165,33 @@
     carousel.style.cursor = 'grab';
   }
 
+  // ---------- YouTube Lite Player ----------
+  const ytPlayer = document.getElementById('yt-player');
+  if (ytPlayer) {
+    // Check if we're inside an iframe (e.g. Perplexity preview)
+    var isEmbedded = window.self !== window.top;
+
+    ytPlayer.addEventListener('click', function () {
+      var videoId = ytPlayer.getAttribute('data-id');
+
+      if (isEmbedded) {
+        // Inside iframe — open YouTube in new tab
+        window.open('https://www.youtube.com/watch?v=' + videoId, '_blank');
+        return;
+      }
+
+      // Direct site — embed the player
+      var iframe = document.createElement('iframe');
+      iframe.src = 'https://www.youtube.com/embed/' + videoId
+        + '?autoplay=1&rel=0&modestbranding=1';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      iframe.allowFullscreen = true;
+      iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;';
+
+      ytPlayer.classList.add('playing');
+      ytPlayer.innerHTML = '';
+      ytPlayer.appendChild(iframe);
+    });
+  }
+
 })();
