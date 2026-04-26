@@ -400,16 +400,41 @@ a:hover {
   border: none;
   cursor: pointer;
   padding: 0;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
-  transition: transform 0.15s;
+  transition: transform 0.18s ease;
+  z-index: 2;
 }
 
-.yt-lite:hover .yt-lite__play {
-  transform: translate(-50%, -50%) scale(1.1);
+.yt-lite__play-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: #ff0000;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.45), 0 0 0 6px rgba(255,255,255,0.18);
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.yt-lite__play-circle svg {
+  margin-left: 4px;
+}
+
+.yt-lite:hover .yt-lite__play,
+.yt-lite__play:focus-visible {
+  transform: translate(-50%, -50%) scale(1.08);
+  outline: none;
+}
+
+.yt-lite:hover .yt-lite__play-circle,
+.yt-lite__play:focus-visible .yt-lite__play-circle {
+  background: #e60000;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 0 0 8px rgba(255,255,255,0.25);
 }
 
 .yt-lite.playing {
   aspect-ratio: 16/9;
+  cursor: default;
 }
 
 .yt-lite.playing iframe {
@@ -418,6 +443,88 @@ a:hover {
   width: 100%;
   height: 100%;
   border: none;
+}
+
+.yt-lite.playing .yt-lite__thumb,
+.yt-lite.playing .yt-lite__play {
+  display: none;
+}
+
+/* ---------- VIDEO SPEED CONTROLS ---------- */
+.video-speed {
+  max-width: 860px;
+  margin: 18px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.video-speed__label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text, #1a1a1a);
+}
+
+.video-speed__buttons {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: #f1f1f3;
+  padding: 4px;
+  border-radius: 999px;
+}
+
+.video-speed__btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #444;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.video-speed__btn:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+.video-speed__btn:active {
+  transform: scale(0.96);
+}
+
+.video-speed__btn.is-active {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.video-speed__btn:focus-visible {
+  outline: 2px solid #ff0000;
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .yt-lite__play-circle {
+    width: 72px;
+    height: 72px;
+  }
+  .yt-lite__play-circle svg {
+    width: 30px;
+    height: 30px;
+  }
+  .video-speed {
+    gap: 8px;
+  }
+  .video-speed__btn {
+    padding: 7px 11px;
+    font-size: 13px;
+  }
 }
 
 /* ---------- PAIN POINTS ---------- */

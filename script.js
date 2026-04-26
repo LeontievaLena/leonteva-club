@@ -165,33 +165,101 @@
     carousel.style.cursor = 'grab';
   }
 
-  // ---------- YouTube Lite Player ----------
+  // ---------- YouTube Player + Speed Controls ----------
   const ytPlayer = document.getElementById('yt-player');
+  const speedBox = document.getElementById('video-speed');
   if (ytPlayer) {
-    // Check if we're inside an iframe (e.g. Perplexity preview)
     var isEmbedded = window.self !== window.top;
+    var ytApiPromise = null;
+    var ytInstance = null;
+    var pendingSpeed = 1;
 
-    ytPlayer.addEventListener('click', function () {
+    function loadYouTubeApi() {
+      if (ytApiPromise) return ytApiPromise;
+      ytApiPromise = new Promise(function (resolve) {
+        if (window.YT && window.YT.Player) {
+          resolve(window.YT);
+          return;
+        }
+        var prev = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = function () {
+          if (typeof prev === 'function') { try { prev(); } catch (e) {} }
+          resolve(window.YT);
+        };
+        var tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(tag);
+      });
+      return ytApiPromise;
+    }
+
+    function setActiveSpeedBtn(speed) {
+      if (!speedBox) return;
+      var btns = speedBox.querySelectorAll('.video-speed__btn');
+      btns.forEach(function (b) {
+        var match = parseFloat(b.getAttribute('data-speed')) === parseFloat(speed);
+        b.classList.toggle('is-active', match);
+      });
+    }
+
+    function applySpeed(speed) {
+      pendingSpeed = speed;
+      setActiveSpeedBtn(speed);
+      if (ytInstance && typeof ytInstance.setPlaybackRate === 'function') {
+        try { ytInstance.setPlaybackRate(parseFloat(speed)); } catch (e) {}
+      }
+    }
+
+    function startPlayback() {
       var videoId = ytPlayer.getAttribute('data-id');
 
       if (isEmbedded) {
-        // Inside iframe — open YouTube in new tab
         window.open('https://www.youtube.com/watch?v=' + videoId, '_blank');
         return;
       }
 
-      // Direct site — embed the player
-      var iframe = document.createElement('iframe');
-      iframe.src = 'https://www.youtube.com/embed/' + videoId
-        + '?autoplay=1&rel=0&modestbranding=1';
-      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-      iframe.allowFullscreen = true;
-      iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;';
-
+      // Build the iframe container the YT API will replace
+      var mount = document.createElement('div');
+      mount.id = 'yt-player-iframe';
+      mount.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
       ytPlayer.classList.add('playing');
-      ytPlayer.innerHTML = '';
-      ytPlayer.appendChild(iframe);
+      ytPlayer.appendChild(mount);
+
+      loadYouTubeApi().then(function (YT) {
+        ytInstance = new YT.Player('yt-player-iframe', {
+          videoId: videoId,
+          playerVars: {
+            autoplay: 1,
+            rel: 0,
+            modestbranding: 1,
+            playsinline: 1
+          },
+          events: {
+            onReady: function (e) {
+              try { e.target.playVideo(); } catch (err) {}
+              try { e.target.setPlaybackRate(parseFloat(pendingSpeed)); } catch (err) {}
+            },
+            onPlaybackRateChange: function (e) {
+              setActiveSpeedBtn(e.data);
+            }
+          }
+        });
+      });
+    }
+
+    ytPlayer.addEventListener('click', function () {
+      if (ytPlayer.classList.contains('playing')) return;
+      startPlayback();
     });
+
+    if (speedBox) {
+      speedBox.addEventListener('click', function (e) {
+        var btn = e.target.closest('.video-speed__btn');
+        if (!btn) return;
+        var speed = parseFloat(btn.getAttribute('data-speed'));
+        if (!isNaN(speed)) applySpeed(speed);
+      });
+    }
   }
 
 })();
